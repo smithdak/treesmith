@@ -1,0 +1,65 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/treesmith-types",
+    "crates/treesmith-format",
+    "crates/treesmith-graph",
+    "crates/treesmith-template",
+    "crates/treesmith-presentation",
+    "crates/treesmith-gate",
+    "crates/treesmith-kernel",
+    "crates/treesmith-mcp",
+    "crates/treesmith-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+repository = "https://github.com/treesmith/treesmith"
+
+[workspace.dependencies]
+treesmith-types = { path = "crates/treesmith-types" }
+treesmith-format = { path = "crates/treesmith-format" }
+treesmith-graph = { path = "crates/treesmith-graph" }
+treesmith-template = { path = "crates/treesmith-template" }
+treesmith-presentation = { path = "crates/treesmith-presentation" }
+treesmith-gate = { path = "crates/treesmith-gate" }
+treesmith-kernel = { path = "crates/treesmith-kernel" }
+treesmith-mcp = { path = "crates/treesmith-mcp" }
+treesmith-cli = { path = "crates/treesmith-cli" }
+
+uuid = { version = "1", features = ["v4"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+walkdir = "2"
+rayon = "1.10"
+clap = { version = "4", features = ["derive"] }
+notify = "6"
+toml = "0.8"
+
+# Root package: the single `treesmith` binary (spec I7).
+[package]
+name = "treesmith"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+description = "Agent-first content kernel for serialized CMS trees: parse, graph, resolve, mutate, validate over a git working tree."
+repository.workspace = true
+
+[[bin]]
+name = "treesmith"
+path = "src/main.rs"
+
+[dependencies]
+treesmith-cli = { workspace = true }
+treesmith-mcp = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[profile.release]
+lto = true
+strip = true

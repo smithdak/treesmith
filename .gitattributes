@@ -1,0 +1,3 @@
+# Fidelity corpora must never be newline-normalized: round-trip tests compare
+# emitted bytes against the exact bytes on disk (spec I2).
+fixtures/** -text

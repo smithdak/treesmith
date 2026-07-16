@@ -1,0 +1,14 @@
+[package]
+name = "treesmith-template"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+treesmith-types = { workspace = true }
+treesmith-format = { workspace = true }
+treesmith-graph = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }

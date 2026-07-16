@@ -1,0 +1,12 @@
+[package]
+name = "treesmith-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+treesmith-kernel = { workspace = true }
+clap = { workspace = true }
+serde_json = { workspace = true }

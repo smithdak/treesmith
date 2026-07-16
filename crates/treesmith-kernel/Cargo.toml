@@ -1,0 +1,19 @@
+[package]
+name = "treesmith-kernel"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+treesmith-types = { workspace = true }
+treesmith-format = { workspace = true }
+treesmith-graph = { workspace = true }
+treesmith-template = { workspace = true }
+treesmith-presentation = { workspace = true }
+treesmith-gate = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+thiserror = { workspace = true }
