@@ -95,11 +95,7 @@ pub(crate) fn resolve_field(
         if let Some(t) = wellknown_target(|(g, _, _, _)| *g == id) {
             return Ok(t);
         }
-        return Err(validation(
-            "unknown-field",
-            format!("field {id} is not in the item's effective template"),
-            json!({ "field": id.rainbow() }),
-        ));
+        return Err(unknown_field(&id.rainbow(), effective));
     }
     if let Some(f) = effective.and_then(|e| e.field_by_name(designator)) {
         return Ok(FieldTarget {
@@ -112,11 +108,64 @@ pub(crate) fn resolve_field(
     if let Some(t) = wellknown_target(|(_, name, _, _)| name.eq_ignore_ascii_case(designator)) {
         return Ok(t);
     }
-    Err(validation(
+    Err(unknown_field(designator, effective))
+}
+
+/// Builds an `unknown-field` error that lists the effective template's
+/// available field names (and a nearest match when one is close), so a
+/// consuming agent doing a blind write gets actionable feedback instead of
+/// a bare rejection.
+fn unknown_field(designator: &str, effective: Option<&EffectiveTemplate>) -> KernelError {
+    let mut available: Vec<String> = effective
+        .map(|e| e.fields.iter().map(|f| f.name.clone()).collect())
+        .unwrap_or_default();
+    available.sort_by_key(|n| n.to_ascii_lowercase());
+    available.dedup();
+
+    let did_you_mean = nearest_field(designator, &available);
+    let hint = match &did_you_mean {
+        Some(name) => format!(" — did you mean `{name}`?"),
+        None => String::new(),
+    };
+    validation(
         "unknown-field",
-        format!("field `{designator}` is not in the item's effective template"),
-        json!({ "field": designator }),
-    ))
+        format!("field `{designator}` is not in the item's effective template{hint}"),
+        json!({
+            "field": designator,
+            "available": available,
+            "didYouMean": did_you_mean,
+        }),
+    )
+}
+
+/// Nearest available field name to `needle` by Levenshtein distance,
+/// accepting only reasonably close matches (distance ≤ ⌈len/2⌉, min 1).
+fn nearest_field(needle: &str, available: &[String]) -> Option<String> {
+    let n = needle.to_ascii_lowercase();
+    let limit = (needle.chars().count().div_ceil(2)).max(1);
+    available
+        .iter()
+        .map(|cand| (levenshtein(&n, &cand.to_ascii_lowercase()), cand))
+        .filter(|(d, _)| *d <= limit)
+        .min_by_key(|(d, _)| *d)
+        .map(|(_, cand)| cand.clone())
+}
+
+/// Iterative Levenshtein edit distance (small strings; no deps).
+fn levenshtein(a: &str, b: &str) -> usize {
+    let a: Vec<char> = a.chars().collect();
+    let b: Vec<char> = b.chars().collect();
+    let mut prev: Vec<usize> = (0..=b.len()).collect();
+    let mut curr = vec![0usize; b.len() + 1];
+    for (i, ca) in a.iter().enumerate() {
+        curr[0] = i + 1;
+        for (j, cb) in b.iter().enumerate() {
+            let cost = usize::from(ca != cb);
+            curr[j + 1] = (prev[j + 1] + 1).min(curr[j] + 1).min(prev[j] + cost);
+        }
+        std::mem::swap(&mut prev, &mut curr);
+    }
+    prev[b.len()]
 }
 
 fn wellknown_target(
@@ -297,4 +346,51 @@ pub(crate) fn read_slot_value(item: &ParsedItem, slot: &FieldSlot, field: Guid) 
             .unwrap_or_default(),
     };
     fields.into_iter().find(|f| f.id == field).map(|f| f.value)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn levenshtein_basic() {
+        assert_eq!(levenshtein("title", "title"), 0);
+        assert_eq!(levenshtein("titel", "title"), 2);
+        assert_eq!(levenshtein("", "abc"), 3);
+        assert_eq!(levenshtein("abc", ""), 3);
+    }
+
+    #[test]
+    fn nearest_field_suggests_close_match_only() {
+        let available = vec![
+            "Body".to_string(),
+            "NavTitle".to_string(),
+            "Title".to_string(),
+        ];
+        // One transposition away from Title → suggested.
+        assert_eq!(
+            nearest_field("Titel", &available),
+            Some("Title".to_string())
+        );
+        // Far from everything → no suggestion.
+        assert_eq!(nearest_field("NoSuchField", &available), None);
+        // Case-insensitive.
+        assert_eq!(
+            nearest_field("title", &available),
+            Some("Title".to_string())
+        );
+    }
+
+    #[test]
+    fn unknown_field_error_carries_available_list() {
+        let err = unknown_field("Bogus", None);
+        match err {
+            KernelError::Validation { code, details, .. } => {
+                assert_eq!(code, "unknown-field");
+                assert!(details.get("available").is_some());
+                assert_eq!(details.get("didYouMean"), Some(&json!(null)));
+            }
+            other => panic!("expected validation, got {other:?}"),
+        }
+    }
 }

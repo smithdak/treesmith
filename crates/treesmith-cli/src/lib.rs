@@ -225,7 +225,11 @@ fn dispatch(cli: &Cli, json_mode: bool) -> u8 {
                 Some(Ok(g)) => Some(g),
                 Some(Err(e)) => {
                     let raw = id.as_deref().unwrap_or_default();
-                    let err = KernelError::Usage(format!("invalid --id `{raw}`: {e}"));
+                    let err = KernelError::usage(
+                        "invalid-designator",
+                        format!("invalid --id `{raw}`: {e}"),
+                        serde_json::json!({ "id": raw }),
+                    );
                     return emit_error(&err, json_mode);
                 }
                 None => None,

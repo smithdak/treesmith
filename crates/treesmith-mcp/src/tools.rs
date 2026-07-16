@@ -6,7 +6,7 @@
 //! gate report has errors. Kernel errors are returned as their
 //! `to_json()` payload (machine-readable), never as a protocol error.
 
-use serde_json::Value;
+use serde_json::{json, Value};
 use treesmith_kernel::{ForgeRequest, KernelError, MoveRequest, SetFieldRequest, Workspace};
 use treesmith_types::Guid;
 
@@ -39,10 +39,13 @@ fn run(workspace: &mut Workspace, name: &str, args: &Value) -> Result<(Value, bo
         }
         "forge" => {
             let id = match opt_str(args, "id") {
-                Some(raw) => Some(
-                    Guid::parse(&raw)
-                        .map_err(|e| KernelError::Usage(format!("invalid id `{raw}`: {e}")))?,
-                ),
+                Some(raw) => Some(Guid::parse(&raw).map_err(|e| {
+                    KernelError::usage(
+                        "invalid-designator",
+                        format!("invalid id `{raw}`: {e}"),
+                        json!({ "id": raw }),
+                    )
+                })?),
                 None => None,
             };
             let req = ForgeRequest {
@@ -77,7 +80,11 @@ fn run(workspace: &mut Workspace, name: &str, args: &Value) -> Result<(Value, bo
             Ok((value, has_errors))
         }
         "census" => Ok((Workspace::census(workspace.root()), false)),
-        other => Err(KernelError::Usage(format!("unknown tool `{other}`"))),
+        other => Err(KernelError::usage(
+            "unknown-tool",
+            format!("unknown tool `{other}`"),
+            json!({ "tool": other }),
+        )),
     }
 }
 
@@ -88,15 +95,25 @@ fn render(value: &Value) -> String {
 }
 
 fn arg_missing(field: &str) -> KernelError {
-    KernelError::Usage(format!("missing required argument `{field}`"))
+    KernelError::usage(
+        "missing-argument",
+        format!("missing required argument `{field}`"),
+        json!({ "argument": field }),
+    )
+}
+
+fn bad_arg(field: &str, expected: &str) -> KernelError {
+    KernelError::usage(
+        "bad-argument",
+        format!("argument `{field}` must be {expected}"),
+        json!({ "argument": field, "expected": expected }),
+    )
 }
 
 fn req_str(args: &Value, field: &str) -> Result<String, KernelError> {
     match args.get(field) {
         Some(Value::String(s)) => Ok(s.clone()),
-        Some(_) => Err(KernelError::Usage(format!(
-            "argument `{field}` must be a string"
-        ))),
+        Some(_) => Err(bad_arg(field, "a string")),
         None => Err(arg_missing(field)),
     }
 }
@@ -119,9 +136,7 @@ fn opt_u32(args: &Value, field: &str) -> Result<Option<u32>, KernelError> {
             .as_u64()
             .and_then(|n| u32::try_from(n).ok())
             .map(Some)
-            .ok_or_else(|| {
-                KernelError::Usage(format!("argument `{field}` must be a non-negative integer"))
-            }),
+            .ok_or_else(|| bad_arg(field, "a non-negative integer")),
     }
 }
 
@@ -133,18 +148,12 @@ fn opt_str_vec(args: &Value, field: &str) -> Result<Option<Vec<String>>, KernelE
             for item in items {
                 match item {
                     Value::String(s) => out.push(s.clone()),
-                    _ => {
-                        return Err(KernelError::Usage(format!(
-                            "argument `{field}` must be an array of strings"
-                        )))
-                    }
+                    _ => return Err(bad_arg(field, "an array of strings")),
                 }
             }
             Ok(Some(out))
         }
-        Some(_) => Err(KernelError::Usage(format!(
-            "argument `{field}` must be an array of strings"
-        ))),
+        Some(_) => Err(bad_arg(field, "an array of strings")),
     }
 }
 

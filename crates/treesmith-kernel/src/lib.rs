@@ -25,8 +25,8 @@ use treesmith_presentation::{scan_placeholders, PresentationError};
 use treesmith_template::TemplateIndex;
 use treesmith_types::Guid;
 
-use error::validation;
 pub use error::KernelError;
+use error::{usage, usage_coded, validation};
 use shapes::{item_detail, item_summary, rel_file};
 use write::{prepare_value, read_slot_value, resolve_field, self_check, slot_for};
 
@@ -132,7 +132,7 @@ impl Workspace {
     /// `query <expr>` → `{"ok":true,"count":N,"items":[ItemSummary]}`.
     pub fn query(&self, expr: &str) -> Result<Value, KernelError> {
         self.ensure_tree_ok()?;
-        let query = treesmith_graph::query::parse_query(expr).map_err(KernelError::Usage)?;
+        let query = treesmith_graph::query::parse_query(expr).map_err(usage)?;
         let items: Vec<Value> = query
             .run(&self.graph)
             .into_iter()
@@ -170,7 +170,11 @@ impl Workspace {
             version,
         )
         .map_err(|e| match e {
-            PresentationError::ItemNotFound(id) => KernelError::Usage(format!("unknown item {id}")),
+            PresentationError::ItemNotFound(id) => usage_coded(
+                "unknown-item",
+                format!("unknown item {id}"),
+                json!({ "id": id.rainbow() }),
+            ),
             PresentationError::MalformedLayoutXml { item, field, error } => validation(
                 "malformed-layout-xml",
                 format!(
@@ -207,7 +211,8 @@ impl Workspace {
         };
         let report: GateReport = match gates {
             None => treesmith_gate::run_all(&ctx),
-            Some(names) => treesmith_gate::run_some(&ctx, names).map_err(KernelError::Usage)?,
+            Some(names) => treesmith_gate::run_some(&ctx, names)
+                .map_err(|m| usage_coded("unknown-gate", m, Value::Null))?,
         };
         let count = |s: Severity| report.findings.iter().filter(|f| f.severity == s).count();
         let (errors, warnings, infos) = (
@@ -526,31 +531,43 @@ impl Workspace {
     /// Ambiguous path → Usage listing candidates; unknown → Usage.
     fn resolve_item(&self, designator: &str) -> Result<&ItemNode, KernelError> {
         if let Ok(id) = Guid::parse(designator) {
-            return self
-                .graph
-                .get(id)
-                .ok_or_else(|| KernelError::Usage(format!("unknown item {id}")));
+            return self.graph.get(id).ok_or_else(|| {
+                usage_coded(
+                    "unknown-item",
+                    format!("unknown item {id}"),
+                    json!({ "id": id.rainbow() }),
+                )
+            });
         }
         if designator.starts_with('/') {
             let matches = self.graph.find_path(designator);
             return match matches.len() {
-                0 => Err(KernelError::Usage(format!(
-                    "unknown item path `{designator}`"
-                ))),
+                0 => Err(usage_coded(
+                    "unknown-path",
+                    format!("unknown item path `{designator}`"),
+                    json!({ "path": designator }),
+                )),
                 1 => Ok(self.graph.get(matches[0]).expect("id from index")),
-                _ => Err(KernelError::Usage(format!(
-                    "ambiguous item path `{designator}`: candidates {}",
-                    matches
-                        .iter()
-                        .map(|g| g.rainbow())
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                ))),
+                _ => {
+                    let candidates: Vec<String> = matches.iter().map(|g| g.rainbow()).collect();
+                    Err(usage_coded(
+                        "ambiguous-path",
+                        format!(
+                            "ambiguous item path `{designator}`: candidates {}",
+                            candidates.join(", ")
+                        ),
+                        json!({ "path": designator, "candidates": candidates }),
+                    ))
+                }
             };
         }
-        Err(KernelError::Usage(format!(
-            "invalid item designator `{designator}`: expected a GUID or a /sitecore/... path"
-        )))
+        Err(usage_coded(
+            "invalid-designator",
+            format!(
+                "invalid item designator `{designator}`: expected a GUID or a /sitecore/... path"
+            ),
+            json!({ "designator": designator }),
+        ))
     }
 
     /// Template designator: GUID, item path, or template name — must
@@ -560,7 +577,11 @@ impl Workspace {
             return if self.templates.get(id).is_some() {
                 Ok(id)
             } else {
-                Err(KernelError::Usage(format!("unknown template {id}")))
+                Err(usage_coded(
+                    "unknown-template",
+                    format!("unknown template {id}"),
+                    json!({ "template": id.rainbow() }),
+                ))
             };
         }
         if designator.starts_with('/') {
@@ -568,25 +589,32 @@ impl Workspace {
             return if self.templates.get(node.id).is_some() {
                 Ok(node.id)
             } else {
-                Err(KernelError::Usage(format!(
-                    "item `{designator}` is not a template"
-                )))
+                Err(usage_coded(
+                    "not-a-template",
+                    format!("item `{designator}` is not a template"),
+                    json!({ "path": designator }),
+                ))
             };
         }
         let matches = self.templates.find_by_name(designator);
         match matches.len() {
-            0 => Err(KernelError::Usage(format!(
-                "unknown template `{designator}`"
-            ))),
+            0 => Err(usage_coded(
+                "unknown-template",
+                format!("unknown template `{designator}`"),
+                json!({ "template": designator }),
+            )),
             1 => Ok(matches[0]),
-            _ => Err(KernelError::Usage(format!(
-                "ambiguous template name `{designator}`: candidates {}",
-                matches
-                    .iter()
-                    .map(|g| g.rainbow())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ))),
+            _ => {
+                let candidates: Vec<String> = matches.iter().map(|g| g.rainbow()).collect();
+                Err(usage_coded(
+                    "ambiguous-template",
+                    format!(
+                        "ambiguous template name `{designator}`: candidates {}",
+                        candidates.join(", ")
+                    ),
+                    json!({ "template": designator, "candidates": candidates }),
+                ))
+            }
         }
     }
 
@@ -664,8 +692,8 @@ fn load_gate_config(root: &Path) -> Result<GateConfig, KernelError> {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(GateConfig::default()),
         Err(e) => return Err(KernelError::Io(format!("read {}: {e}", path.display()))),
     };
-    let file: ConfigFile =
-        toml::from_str(&text).map_err(|e| KernelError::Usage(format!("treesmith.toml: {e}")))?;
+    let file: ConfigFile = toml::from_str(&text)
+        .map_err(|e| usage_coded("bad-config", format!("treesmith.toml: {e}"), Value::Null))?;
     let mut config = GateConfig {
         disabled: file
             .gates
@@ -696,9 +724,11 @@ fn scalar_entry(key: &str, scalar: Scalar) -> Entry {
 /// New-item / new-child name: one non-empty path segment.
 fn validate_name(name: &str) -> Result<(), KernelError> {
     if name.trim().is_empty() || name.contains('/') || name.contains('\\') {
-        return Err(KernelError::Usage(format!(
-            "invalid item name `{name}`: must be a single non-empty path segment"
-        )));
+        return Err(usage_coded(
+            "invalid-name",
+            format!("invalid item name `{name}`: must be a single non-empty path segment"),
+            json!({ "name": name }),
+        ));
     }
     Ok(())
 }
