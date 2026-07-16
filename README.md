@@ -1,5 +1,12 @@
 # treesmith
 
+**Agent-first content kernel for serialized CMS trees.**
+
+[![CI](https://github.com/smithdak/treesmith/actions/workflows/ci.yml/badge.svg)](https://github.com/smithdak/treesmith/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+[![Rust 1.85+](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](Cargo.toml)
+[![MCP server](https://img.shields.io/badge/MCP-server-8A2BE2.svg)](docs/mcp.md)
+
 treesmith is a **developer tool, not a CMS**: an agent-first Rust content kernel that gives coding
 agents template-aware, GUID-safe, structure-safe read/write access to a client's serialized CMS
 content tree (Sitecore Unicorn / Rainbow YAML and SCS YAML), and gives the human operator
@@ -17,6 +24,19 @@ two thin surfaces — **CLI verbs** and **MCP tools**.
   lines you changed.
 - **Gates are deterministic and interrogable**: identical tree in → identical verdict out, with a
   machine-readable reason code for every finding. No network, no wall clock, no randomness.
+
+This diagram shows where treesmith sits: both surfaces call the same kernel, and the git working
+tree is the only state.
+
+```mermaid
+flowchart LR
+    A["coding agent"] -->|"tools/call"| M["treesmith mcp"]
+    H["human · CI · hooks"] -->|"CLI verbs"| C["treesmith CLI"]
+    M --> K["kernel"]
+    C --> K
+    K -->|"validated, self-checked writes"| T["git working tree<br/>Rainbow / SCS YAML"]
+    T -->|"git diff"| H
+```
 
 ---
 
@@ -48,18 +68,73 @@ treesmith --root /path/to/repo validate
 ```
 
 `--root` defaults to the current directory, so from inside a repo you can drop it. Every command
-also exists as an MCP tool (see [MCP setup](#mcp-setup-for-a-coding-agent)).
+also exists as an MCP tool — see the [MCP guide](docs/mcp.md).
 
 **Output contract:** JSON (pretty) on stdout when stdout is **not** a TTY (i.e. when piped or
 redirected — no flag needed); human-readable lines when it is; `--json` forces JSON either way.
 Diagnostics always go to stderr, never stdout, so `treesmith ... | jq` is always safe.
 
+> [!IMPORTANT]
+> **Before trusting any write path on a real repo, run `treesmith census` on it.** The census
+> parses every serialized item, re-emits it, and byte-compares — the single falsifier for the
+> byte-identical round-trip invariant. A clean census (`ok: true`, zero faults, zero mismatches,
+> exit 0) is the green light for mutations on that repo. See
+> [Fixtures & the census harness](#fixtures--the-census-harness).
+
+## What a write looks like
+
+A treesmith mutation is template-validated, self-checked before anything touches disk, and
+byte-minimal on disk. Run against the bundled fixture repo:
+
+```sh
+treesmith --root fixtures/rainbow/basic set-field /sitecore/content/Home Title "Welcome to Acme"
+git diff
+git checkout -- fixtures   # put the fixture back when you're done looking
+```
+
+```diff
+--- a/fixtures/rainbow/basic/serialization/content/Home.yml
++++ b/fixtures/rainbow/basic/serialization/content/Home.yml
+@@ -54,7 +54,7 @@ Languages:
+     Fields:
+     - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+       Hint: Title
+-      Value: Home
++      Value: Welcome to Acme
+```
+
+One line. The field was resolved through the item's effective template (so `Title` landed in the
+right language/version slot with the right field GUID), the candidate bytes were re-parsed and
+compared before writing, and everything else in the file is byte-identical. A typo'd field name is
+rejected with a machine-readable payload, not a guess:
+
+```sh
+treesmith --root fixtures/rainbow/basic set-field /sitecore/content/Home Titel "hello"
+```
+
+```json
+{
+  "ok": false,
+  "error": {
+    "class": "validation",
+    "code": "unknown-field",
+    "message": "field `Titel` is not in the item's effective template — did you mean `Title`?",
+    "details": {
+      "available": ["Body", "Keywords", "NavTitle", "RelatedPages", "Title"],
+      "didYouMean": "Title",
+      "field": "Titel"
+    }
+  }
+}
+```
+
 ---
 
 ## Verbs
 
-Note the **positional** argument signatures for the mutating verbs — they are positional, not
-`--flags`. (The MCP tools use named JSON arguments; see the [MCP section](#mcp-setup-for-a-coding-agent).)
+Full reference with worked examples for every verb: [docs/cli.md](docs/cli.md). Note the
+**positional** argument signatures for the mutating verbs — they are positional, not `--flags`.
+(The MCP tools use named JSON arguments; see [docs/mcp.md](docs/mcp.md).)
 
 | Verb | Signature | Purpose |
 |---|---|---|
@@ -93,9 +168,8 @@ repo whose only problems are *gate* violations returns `ok: true` **exit 0** —
 byte-level round-trip fidelity only; policy/structure problems surface through `validate`. See
 [fixtures](#fixtures--the-census-harness) for a worked example.
 
-### JSON output contracts
-
-All shapes are camelCase and defined precisely in [`DESIGN.md` §8](DESIGN.md). In brief:
+<details>
+<summary><strong>JSON output contracts</strong> (camelCase; defined precisely in <a href="DESIGN.md">DESIGN.md §8</a>)</summary>
 
 ```text
 query    {"ok":true,"count":N,"items":[ItemSummary]}
@@ -112,23 +186,25 @@ split into `unknown-path`, `unknown-item`, `invalid-designator`, `ambiguous-path
 `unknown-template`, `unknown-gate`, and a validation `unknown-field` includes the effective
 template's `available` field names plus a `didYouMean` nearest match in `details`.
 
+</details>
+
 ---
 
 ## Gates (G1–G7)
 
 `treesmith validate` runs seven deterministic gates, all evaluable from the parsed graph plus a repo
 scan. Each finding carries a `code`, a `severity` (`error` / `warning` / `info`), and the offending
-item/file.
+item/file. Full reference with real finding payloads: [docs/gates.md](docs/gates.md).
 
-| Gate | Checks | Reason codes (severity) |
-|---|---|---|
-| **G1** | Broken or missing datasource reference | `g1.missing-datasource` (error), `g1.dynamic-datasource` (info) |
-| **G2** | Malformed layout XML / unresolvable final-renderings delta | `g2.malformed-xml`, `g2.unknown-uid`, `g2.bad-position-ref` (error), `g2.device-without-layout` (warning) |
-| **G3** | Rendering item → missing code file | `g3.missing-view` (error), `g3.missing-controller`, `g3.empty-path` (warning) |
-| **G4** | Placeholder mismatch (static `.cshtml` scan vs presentation references) | `g4.placeholder-not-exposed` (warning) |
-| **G5** | Field reference to a nonexistent item | `g5.broken-reference`, `g5.invalid-guid-token` (error) |
-| **G6** | Template conformance on created/mutated items | `g6.unknown-field`, `g6.wrong-section`, `g6.duplicate-field`, `g6.invalid-value` (error), `g6.unresolved-template`, `g6.unresolved-base` (warning) |
-| **G7** | Language-version gaps against a required-languages policy | `g7.missing-language` (error) |
+| Gate | Checks |
+|---|---|
+| **G1** | Broken or missing datasource reference |
+| **G2** | Malformed layout XML / unresolvable final-renderings delta |
+| **G3** | Rendering item → missing code file |
+| **G4** | Placeholder mismatch (static `.cshtml` scan vs presentation references) |
+| **G5** | Field reference to a nonexistent item |
+| **G6** | Template conformance on created/mutated items |
+| **G7** | Language-version gaps against a required-languages policy |
 
 G7 is skipped unless a language policy is configured. Configuration lives in an optional
 `<root>/treesmith.toml` (absent = defaults):
@@ -138,7 +214,7 @@ G7 is skipped unless a language policy is configured. Configuration lives in an 
 disabled = []                      # e.g. ["G4"] to turn a gate off
 [gates.language-policy]
 required = ["en", "da"]            # presence enables G7
-paths    = ["/sitecore/content"]  # items under these paths must carry all required languages
+paths    = ["/sitecore/content"]   # items under these paths must carry all required languages
 ```
 
 Use it as a pre-commit hook by running `treesmith validate` and letting exit code 1 block the commit.
@@ -162,14 +238,10 @@ coding-agent MCP client like so:
 }
 ```
 
-`tools/list` exposes eight tools mirroring the CLI verbs 1:1 (note: snake_case where the verb has a
+`tools/list` exposes eight tools mirroring the CLI verbs 1:1 (snake_case where the verb has a
 hyphen): `query`, `get`, `set_field`, `forge`, `move`, `resolve_presentation`, `validate`,
-`census`. Their arguments are a **named** camelCase object, e.g. `set_field` takes
-`{item, field, value, language?, version?, createVersion?}` and `forge` takes
-`{template, parent, name, id?, language?}`. `tools/call` returns the same JSON string the CLI would
-print as `content[0].text`, with `isError: true` for kernel errors and for `validate` when the gate
-report has errors — kernel errors are always returned as machine-readable payloads, never as a
-protocol-level error.
+`census`. Arguments are **named** camelCase objects. A full protocol walkthrough, tool schemas, and
+a captured session transcript are in [docs/mcp.md](docs/mcp.md).
 
 ---
 
@@ -177,13 +249,8 @@ protocol-level error.
 
 `fixtures/` is a **synthetic** corpus (`fixtures/rainbow/basic` — a healthy mini repo — and
 `fixtures/rainbow/broken` — one deliberate violation per gate), authored to exercise the codec and
-gates self-consistently. It is *not* a substitute for real client data:
-
-> **`treesmith census` is the P0 fidelity harness. Run it against a real client repo before trusting
-> any write path on that repo.** The census parses every serialized item, re-emits it, and
-> byte-compares — the single falsifier for the byte-identical round-trip invariant (I2) and for the
-> emitter-style assumptions listed in [`DESIGN.md` §15](DESIGN.md). A clean census (`ok: true`, zero
-> faults, zero mismatches, exit 0) is the green light for mutations on that repo.
+gates self-consistently. It is *not* a substitute for real client data: the emitter-style
+assumptions in [`DESIGN.md` §15](DESIGN.md) are unverified until a P0 census runs on a real repo.
 
 Note the exit-code split when reading census output: `census` reports **fidelity** only. The
 `broken` fixture, for instance, is broken at the *gate* level (missing datasources, malformed
@@ -191,6 +258,21 @@ layout XML, etc.) but every file still round-trips byte-identically — so `cens
 returns `ok: true` exit 0, while `validate` returns exit 1 with all seven gates firing. Branch
 scripts on this split: **exit 3 = the tree is unreadable; exit 1 = the tree parses but violates a
 gate.**
+
+---
+
+## Documentation
+
+| Document | What it answers |
+|---|---|
+| [docs/cli.md](docs/cli.md) | Every verb, flag, query expression, and error payload, with real outputs |
+| [docs/mcp.md](docs/mcp.md) | Wiring treesmith into a coding agent; protocol behavior; tool schemas |
+| [docs/gates.md](docs/gates.md) | Every gate, reason code, and severity; gate configuration; CI usage |
+| [docs/architecture.md](docs/architecture.md) | Crate layout, dependency rules, the write path, invariants I1–I8 |
+| [docs/formats.md](docs/formats.md) | The Rainbow codec, byte-identical round-trip, write rules, census |
+| [DESIGN.md](DESIGN.md) | The binding engineering contracts the v0 build was executed against |
+| [treesmith-architecture-spec.md](treesmith-architecture-spec.md) | The original product spec |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Toolchain, build/test/lint, fixture rules, definition of done |
 
 ---
 
