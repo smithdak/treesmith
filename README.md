@@ -201,8 +201,10 @@ as resolved (or reopened) during the build.
 
 - **(a) Owning-org name is unavailable; naming reopens as an O-item.** `github.com/treesmith` is
   **TAKEN** — a dormant user account created 2014-06 with zero public repos — so the spec §8 O4
-  owning-org name is unavailable. The naming decision reopens as an O-item for the owner. (This
-  repository currently lives at `github.com/smithdak/treesmith` as an interim home.)
+  owning-org name is unavailable. The naming decision reopens as an O-item for the owner
+  (options: GitHub's dormant-username process, or an alternate org name). Interim home resolved
+  by the owner on 2026-07-16: this repository lives at `github.com/smithdak/treesmith` (the
+  owner's personal account) until the org question is settled.
 - **(b) O3 resolved in-build: custom Rainbow-subset parser + emitter.** Rainbow output is **not
   strict YAML** — plain scalars run verbatim to end-of-line (e.g. `Value: a: b` is a legal plain
   value), which rules out event-stream YAML parsers. treesmith uses a hand-written
