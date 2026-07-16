@@ -293,6 +293,22 @@ pub(crate) fn prepare_value(
         }
     }
 
+    // A trailing newline encodes as a block scalar with a trailing blank line,
+    // which the codec can only round-trip when the field happens to sit at end
+    // of document. Rejecting uniformly keeps identical mutations behaving
+    // identically regardless of document position (review finding W1).
+    if value.ends_with('\n') {
+        return Err(validation(
+            "trailing-newline-unsupported",
+            format!(
+                "field `{}`: value ends with a newline, which cannot be stored \
+                 position-independently in the serialized form — trim it",
+                target.name
+            ),
+            json!({ "field": target.id.rainbow(), "type": target.field_type }),
+        ));
+    }
+
     let stamp = (is_multilist_type(&target.field_type) || is_xml_type(&target.field_type))
         && !target.field_type.is_empty();
     let type_hint = stamp.then(|| target.field_type.clone());

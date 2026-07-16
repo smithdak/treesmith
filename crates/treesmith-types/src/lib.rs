@@ -33,13 +33,19 @@ pub struct GuidError {
 
 impl Guid {
     /// Parses a GUID. Accepts hyphenated, braced `{...}`, and 32-hex-digit
-    /// forms, any case. Leading/trailing whitespace is tolerated.
+    /// forms, any case. Leading/trailing whitespace is tolerated. Exactly
+    /// these forms: broader `uuid` syntaxes such as `urn:uuid:...` are
+    /// rejected to keep the documented contract tight.
     pub fn parse(s: &str) -> Result<Guid, GuidError> {
-        uuid::Uuid::try_parse(s.trim())
-            .map(Guid)
-            .map_err(|_| GuidError {
+        let t = s.trim();
+        if t.contains(':') {
+            return Err(GuidError {
                 input: s.to_string(),
-            })
+            });
+        }
+        uuid::Uuid::try_parse(t).map(Guid).map_err(|_| GuidError {
+            input: s.to_string(),
+        })
     }
 
     /// Rainbow file form: lowercase hyphenated, no braces. Also the
@@ -245,6 +251,13 @@ mod tests {
     fn parse_braced_lower() {
         let g = Guid::parse("{ab86861a-6030-46c5-b394-e8f99e8b87db}").unwrap();
         assert_eq!(g, reference());
+    }
+
+    #[test]
+    fn parse_rejects_urn_form() {
+        // The documented contract is hyphenated / braced / simple only;
+        // uuid's broader urn syntax must not slip through.
+        assert!(Guid::parse("urn:uuid:ab86861a-6030-46c5-b394-e8f99e8b87db").is_err());
     }
 
     #[test]

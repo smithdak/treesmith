@@ -786,3 +786,10 @@ string / language alpha / version numeric (§3.2), `Type:` stamping set + multil
 field GUID (§12), plus the spec Appendix's own unverified claims. The census (`treesmith census`)
 is the falsifier once a real client repo is available; `fixtures/` encode these assumptions
 self-consistently until then.
+
+Post-build review additions: the item head sniff requires `ID: ` as the first key after `---` —
+an item serialized with a non-canonical leading key would be silently ignored rather than
+surfaced (VERIFY-P0: extend the sniff and census if a real repo exhibits one). Values ending in
+`\n` are rejected on write with `trailing-newline-unsupported` — they encode as a block scalar
+with a trailing blank line, which round-trips only at end-of-document, so acceptance would be
+position-dependent.

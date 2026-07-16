@@ -349,6 +349,24 @@ fn set_field_malformed_layout_xml_rejected() {
     );
 }
 
+#[test]
+fn set_field_trailing_newline_rejected_regardless_of_position() {
+    // A trailing newline only round-trips when the field lands at end of
+    // document; rejecting uniformly keeps the same mutation from succeeding
+    // or failing based on unrelated document structure (review finding W1).
+    assert_rejects_and_writes_nothing(
+        SetFieldRequest {
+            item: HOME.to_string(),
+            field: "Title".to_string(),
+            value: "x\n".to_string(),
+            language: Some("en".to_string()),
+            version: Some(1),
+            create_version: true,
+        },
+        "trailing-newline-unsupported",
+    );
+}
+
 // ---- multilist normalization + Type stamping -----------------------------------
 
 #[test]
