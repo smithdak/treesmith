@@ -1,0 +1,28 @@
+---
+ID: "b0000000-0025-4000-8000-000000000025"
+Parent: "bbbbbbbb-0000-4000-8000-0000000000bb"
+Template: "b0000000-0001-4000-8000-000000000001"
+Path: /sitecore/content/Foxtrot
+DB: master
+SharedFields:
+- ID: "f0000000-0001-4000-8000-0000000000f1"
+  Hint: Mystery
+  Value: not defined on any template
+Languages:
+- Language: da
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "b0000000-0005-4000-8000-000000000005"
+      Hint: Title
+      Value: Foxtrot (da)
+- Language: en
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "b0000000-0003-4000-8000-000000000003"
+      Hint: Link
+      Value: "{B0000000-0023-4000-8000-000000000023}"
+    - ID: "b0000000-0005-4000-8000-000000000005"
+      Hint: Title
+      Value: Foxtrot

@@ -1,0 +1,14 @@
+---
+ID: "b0000000-0026-4000-8000-000000000026"
+Parent: "bbbbbbbb-0000-4000-8000-0000000000bb"
+Template: "b0000000-0001-4000-8000-000000000001"
+Path: /sitecore/content/Golf
+DB: master
+Languages:
+- Language: en
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "b0000000-0005-4000-8000-000000000005"
+      Hint: Title
+      Value: Golf

@@ -1,0 +1,13 @@
+---
+ID: "7c1e1c2a-0012-4000-8000-000000000012"
+Parent: "7c1e1c2a-0011-4000-8000-000000000011"
+Template: "455a3e98-a627-4b40-8035-e683a0331ac7"
+Path: /sitecore/templates/Sample/Meta/SEO/Keywords
+DB: master
+SharedFields:
+- ID: "ab162cc0-dc80-4abf-8871-998ee5d7ba32"
+  Hint: Type
+  Value: Single-Line Text
+- ID: "be351a73-fcb0-4213-93fa-c302d8ab4f51"
+  Hint: Shared
+  Value: 1

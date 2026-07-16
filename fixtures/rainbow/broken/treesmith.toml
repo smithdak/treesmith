@@ -1,0 +1,9 @@
+# Gate configuration for the deliberately-broken fixture repo.
+# The language policy below arms G7: Golf has en versions but no da.
+
+[gates]
+disabled = []
+
+[gates.language-policy]
+required = ["en", "da"]
+paths = ["/sitecore/content"]

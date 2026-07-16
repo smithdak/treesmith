@@ -1,0 +1,13 @@
+---
+ID: "b0000000-0003-4000-8000-000000000003"
+Parent: "b0000000-0002-4000-8000-000000000002"
+Template: "455a3e98-a627-4b40-8035-e683a0331ac7"
+Path: /sitecore/templates/Simple/Data/Link
+DB: master
+SharedFields:
+- ID: "ab162cc0-dc80-4abf-8871-998ee5d7ba32"
+  Hint: Type
+  Value: Droplink
+- ID: "be351a73-fcb0-4213-93fa-c302d8ab4f51"
+  Hint: Shared
+  Value: 1

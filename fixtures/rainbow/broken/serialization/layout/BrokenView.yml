@@ -1,0 +1,10 @@
+---
+ID: "b0000000-0012-4000-8000-000000000012"
+Parent: "bbbbbbbb-0000-4000-8000-0000000000bb"
+Template: "99f8905d-4a87-4eb8-9f8b-a9bebfb3add6"
+Path: /sitecore/layout/Renderings/BrokenView
+DB: master
+SharedFields:
+- ID: "cccccccc-0001-4000-8000-0000000000c1"
+  Hint: Path
+  Value: /Views/Missing.cshtml

@@ -1,0 +1,10 @@
+---
+ID: "9a11aaaa-0001-4000-8000-000000000001"
+Parent: "aaaaaaaa-0000-4000-8000-0000000000aa"
+Template: "3a45a723-64ee-4919-9d41-02fd40fd1466"
+Path: /sitecore/layout/Layouts/MainLayout
+DB: master
+SharedFields:
+- ID: "07aa88dc-3b4b-4e85-91f2-a4cc5261c6d4"
+  Hint: Path
+  Value: /Views/Shared/MainLayout.cshtml

@@ -1,0 +1,10 @@
+---
+ID: "9a11aaaa-0003-4000-8000-000000000003"
+Parent: "aaaaaaaa-0000-4000-8000-0000000000aa"
+Template: "2a3e91a0-7987-44b5-ab34-35c2d9de83b9"
+Path: /sitecore/layout/Renderings/NavBar
+DB: master
+SharedFields:
+- ID: "cccccccc-0002-4000-8000-0000000000c2"
+  Hint: Controller
+  Value: NavBarController

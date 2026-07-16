@@ -1,0 +1,17 @@
+---
+ID: "7c1e1c2a-0030-4000-8000-000000000030"
+Parent: "7c1e1c2a-0001-4000-8000-000000000001"
+Template: "7c1e1c2a-0001-4000-8000-000000000001"
+Path: /sitecore/templates/Sample/Page/__Standard Values
+DB: master
+SharedFields:
+- ID: "f1a1fe9e-a60c-4ddb-a3a0-bb5b29fe732e"
+  Hint: __Renderings
+  Type: Layout
+  Value: |
+    <r xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <d id="{FE5D7FDF-89C0-4D99-9AA3-B5FBD009C9F3}" l="{9A11AAAA-0001-4000-8000-000000000001}">
+        <r id="{9A11AAAA-0003-4000-8000-000000000003}" ph="main" uid="{11111111-1111-4111-8111-111111111101}" />
+        <r ds="{C0FFEE00-0002-4000-8000-000000000002}" id="{9A11AAAA-0002-4000-8000-000000000002}" ph="main" uid="{11111111-1111-4111-8111-111111111102}" />
+      </d>
+    </r>

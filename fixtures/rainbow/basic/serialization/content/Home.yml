@@ -1,0 +1,63 @@
+---
+ID: "c0ffee00-0001-4000-8000-000000000001"
+Parent: "aaaaaaaa-0000-4000-8000-0000000000aa"
+Template: "7c1e1c2a-0020-4000-8000-000000000020"
+Path: /sitecore/content/Home
+DB: master
+SharedFields:
+- ID: "7c1e1c2a-0006-4000-8000-000000000006"
+  Hint: RelatedPages
+  Type: Treelist
+  Value: |
+    {C0FFEE00-0003-4000-8000-000000000003}
+- ID: "7c1e1c2a-0012-4000-8000-000000000012"
+  Hint: Keywords
+  Value: sample, article, treesmith
+Languages:
+- Language: da
+  Fields:
+  - ID: "7c1e1c2a-0005-4000-8000-000000000005"
+    Hint: NavTitle
+    Value: Hjem
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+      Hint: Title
+      Value: Hjem
+- Language: en
+  Fields:
+  - ID: "7c1e1c2a-0005-4000-8000-000000000005"
+    Hint: NavTitle
+    Value: Home
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "04bf00db-f5fb-41f7-8ab7-22408372a981"
+      Hint: __Final Renderings
+      Type: Layout
+      Value: |
+        <r>
+          <d id="{FE5D7FDF-89C0-4D99-9AA3-B5FBD009C9F3}">
+            <r ds="local:/Data/HeroData" uid="{11111111-1111-4111-8111-111111111102}" />
+            <r id="{9A11AAAA-0004-4000-8000-000000000004}" p:after="r[@uid='{11111111-1111-4111-8111-111111111102}']" ph="main" uid="{11111111-1111-4111-8111-111111111103}" />
+          </d>
+        </r>
+    - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+      Hint: Title
+      Value: Home
+    - ID: "7c1e1c2a-0004-4000-8000-000000000004"
+      Hint: Body
+      Value: |
+        <p>Welcome home.</p>
+  - Version: 2
+    Fields:
+    - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+      Hint: Title
+      Value: Home
+    - ID: "7c1e1c2a-0004-4000-8000-000000000004"
+      Hint: Body
+      Value: |
+        <p>Welcome home, again.</p>
+
+        <p>Now with a second paragraph.</p>

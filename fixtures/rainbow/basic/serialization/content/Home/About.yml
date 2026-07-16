@@ -1,0 +1,22 @@
+---
+ID: "c0ffee00-0003-4000-8000-000000000003"
+Parent: "c0ffee00-0001-4000-8000-000000000001"
+Template: "7c1e1c2a-0001-4000-8000-000000000001"
+Path: /sitecore/content/Home/About
+DB: master
+Languages:
+- Language: en
+  Fields:
+  - ID: "7c1e1c2a-0005-4000-8000-000000000005"
+    Hint: NavTitle
+    Value: About
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+      Hint: Title
+      Value: About Us
+    - ID: "7c1e1c2a-0004-4000-8000-000000000004"
+      Hint: Body
+      Value: |
+        <p>All about the sample site.</p>

@@ -1,0 +1,16 @@
+---
+ID: "b0000000-0020-4000-8000-000000000020"
+Parent: "bbbbbbbb-0000-4000-8000-0000000000bb"
+Template: "b0000000-0001-4000-8000-000000000001"
+Path: /sitecore/content/Alpha
+DB: master
+SharedFields:
+- ID: "f1a1fe9e-a60c-4ddb-a3a0-bb5b29fe732e"
+  Hint: __Renderings
+  Type: Layout
+  Value: |
+    <r xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <d id="{FE5D7FDF-89C0-4D99-9AA3-B5FBD009C9F3}" l="{B0000000-0010-4000-8000-000000000010}">
+        <r ds="{D0000000-0000-4000-8000-0000000000D0}" id="{B0000000-0011-4000-8000-000000000011}" ph="main" uid="{22222222-2222-4222-8222-222222222201}" />
+      </d>
+    </r>

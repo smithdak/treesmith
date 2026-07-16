@@ -1,0 +1,10 @@
+---
+ID: "9a11aaaa-0004-4000-8000-000000000004"
+Parent: "aaaaaaaa-0000-4000-8000-0000000000aa"
+Template: "99f8905d-4a87-4eb8-9f8b-a9bebfb3add6"
+Path: /sitecore/layout/Renderings/PromoBanner
+DB: master
+SharedFields:
+- ID: "cccccccc-0001-4000-8000-0000000000c1"
+  Hint: Path
+  Value: /Views/PromoBanner.cshtml
