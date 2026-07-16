@@ -585,6 +585,7 @@ dependencies = [
  "clap",
  "serde_json",
  "treesmith-kernel",
+ "treesmith-types",
 ]
 
 [[package]]
@@ -650,6 +651,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "treesmith-kernel",
+ "treesmith-types",
 ]
 
 [[package]]

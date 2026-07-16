@@ -8,6 +8,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 treesmith-kernel = { workspace = true }
+treesmith-types = { workspace = true }
 serde_json = { workspace = true }
 notify = { workspace = true }
 thiserror = { workspace = true }
