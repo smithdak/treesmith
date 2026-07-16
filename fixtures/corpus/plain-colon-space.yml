@@ -1,0 +1,7 @@
+---
+ID: "0c0deb00-0007-4000-8000-000000000007"
+Path: /sitecore/content/Corpus/ColonSpace
+SharedFields:
+- ID: "7c1e1c2a-0012-4000-8000-000000000012"
+  Hint: Query
+  Value: query: ./ancestor-or-self::*[@@templatename="Site"]: end

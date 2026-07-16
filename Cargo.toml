@@ -16,7 +16,7 @@ members = [
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.85"
-repository = "https://github.com/treesmith/treesmith"
+repository = "https://github.com/smithdak/treesmith"
 
 [workspace.dependencies]
 treesmith-types = { path = "crates/treesmith-types" }

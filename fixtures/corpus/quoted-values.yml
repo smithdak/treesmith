@@ -1,0 +1,10 @@
+---
+ID: "0c0deb00-0001-4000-8000-000000000001"
+Parent: "0c0deb00-0000-4000-8000-000000000000"
+Template: "7c1e1c2a-0001-4000-8000-000000000001"
+Path: /sitecore/content/Corpus/Quoted
+DB: master
+SharedFields:
+- ID: "7c1e1c2a-0012-4000-8000-000000000012"
+  Hint: Keywords
+  Value: "value with spaces and trailing colon:"

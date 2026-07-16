@@ -1,0 +1,41 @@
+---
+ID: "0c0deb00-000e-4000-8000-00000000000e"
+Parent: "0c0deb00-0000-4000-8000-000000000000"
+Template: "7c1e1c2a-0020-4000-8000-000000000020"
+Path: /sitecore/content/Corpus/FullItem
+DB: master
+BranchID: "00000000-0000-0000-0000-000000000000"
+SharedFields:
+- ID: "7c1e1c2a-0006-4000-8000-000000000006"
+  Hint: RelatedPages
+  Type: Treelist
+  Value: |
+    {C0FFEE00-0002-4000-8000-000000000002}
+    {C0FFEE00-0003-4000-8000-000000000003}
+Languages:
+- Language: da
+  Fields:
+  - ID: "7c1e1c2a-0005-4000-8000-000000000005"
+    Hint: NavTitle
+    Value: Hjem
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+      Hint: Title
+      Value: Hjem
+- Language: en
+  Versions:
+  - Version: 1
+    Fields:
+    - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+      Hint: Title
+      Value: Home v1
+  - Version: 2
+    Fields:
+    - ID: "7c1e1c2a-0003-4000-8000-000000000003"
+      Hint: Title
+      Value: Home v2
+    - ID: "b5e02ad9-d56f-4c41-a065-a133db87bdeb"
+      Hint: __Display name
+      Value: The Home Page

@@ -1,0 +1,8 @@
+---
+ID: "0c0deb00-0002-4000-8000-000000000002"
+Path: /sitecore/content/Corpus/BracedGuid
+SharedFields:
+- ID: "7c1e1c2a-0006-4000-8000-000000000006"
+  Hint: Link
+  Type: Droplink
+  Value: "{C0FFEE00-0002-4000-8000-000000000002}"

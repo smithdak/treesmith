@@ -1,0 +1,9 @@
+﻿---
+ID: "0c0deb00-0010-4000-8000-000000000010"
+Path: /sitecore/content/Corpus/BomCrlf
+SharedFields:
+- ID: "7c1e1c2a-0004-4000-8000-000000000004"
+  Hint: Body
+  Value: |
+    line one
+

@@ -1,0 +1,10 @@
+---
+ID: "0c0deb00-0005-4000-8000-000000000005"
+FutureMarker: some future value
+Path: /sitecore/content/Corpus/Unknown
+Extra:
+  Nested: 1
+  Deeper:
+  - Entry: a
+    Also: b
+Trailing: end

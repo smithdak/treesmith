@@ -1,0 +1,12 @@
+---
+ID: "0c0deb00-000d-4000-8000-00000000000d"
+Path: /sitecore/content/Corpus/BlockHeaders
+SharedFields:
+- ID: "7c1e1c2a-0004-4000-8000-000000000004"
+  Hint: Body
+  Value: |-
+    chomped final newline
+- ID: "7c1e1c2a-0012-4000-8000-000000000012"
+  Hint: Folded
+  Value: >
+    folded text
